@@ -55,7 +55,7 @@ def main():
         ('IMQ KSD', make_divergence_call(rfsd.KSD(kernel.KIMQ(), p))),
         #('L2 SechExp', make_divergence_call(rfsd.LrSechFastKSD(p))),
         ('L1 IMQ', make_divergence_call(rfsd.L1IMQFastKSD(p, d=d))),
-        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ())))])
+        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : int(np.sqrt(n)))))])
 
     store_loc = 'speed-experiment-stored-data-%d-rounds' % reps
 
