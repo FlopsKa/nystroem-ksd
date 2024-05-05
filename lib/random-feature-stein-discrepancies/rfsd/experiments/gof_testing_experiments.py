@@ -237,7 +237,7 @@ def single_gof_testing_round(test_names, case, gamma, test_alpha, J):
                           'Nys Gauss KSD' : NystroemKSD(p, kgauss, alpha=test_alpha, seed=None),
                           'Gauss FSSD-rand' : GaussFSSD(p, sigma2, Vgauss, alpha=test_alpha, seed=None),
     }
-    if 'Gauss FSSD-opt' in tests:
+    if 'Gauss FSSD-opt' in test_names:
         possible_tests['Gauss FSSD-opt'] = GaussFSSD(p, gwidth_opt, Vgauss_opt, alpha=test_alpha, n_simulate=2000, seed=None)
     tests = {}
     for tn in test_names:
