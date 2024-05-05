@@ -105,7 +105,7 @@ def main():
         elif args.experiment_name == 'rbm':
             args.tests = ['L2 SechExp', 'L1 IMQ (RBM)',
                           'Gauss FSSD-opt',
-                          'IMQ KSD', 'Gauss KSD',
+                          'IMQ KSD (RBM)', 'Gauss KSD',
                           'Nys IMQ KSD (RBM)', 'Nys Gauss KSD']
         else:
             args.tests = ['L2 SechExp', 'L1 IMQ',

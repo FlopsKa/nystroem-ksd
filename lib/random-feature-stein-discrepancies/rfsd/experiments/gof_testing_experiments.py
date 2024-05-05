@@ -227,17 +227,17 @@ def single_gof_testing_round(test_names, case, gamma, test_alpha, J):
                           'L1 IMQ' : RFDGofTest(p, rfd_imq, null_sim=l1_rfd_null_sim, alpha=l1_imq_test_alpha),
                           'L2 SechExp' : RFDGofTest(p, rfd_sech, null_sim=l2_rfd_null_sim, alpha=l2_sech_test_alpha),
                           'L2 SechExp (alpha)' : RFDGofTest(p, rfd_sech, null_sim=l2_rfd_null_sim, alpha=test_alpha),
-                          'Gauss FSSD-rand' : GaussFSSD(p, sigma2, Vgauss, alpha=test_alpha, seed=None),
-                          'Gauss RFF' : RFDGofTest(p, rff_gauss, null_sim=l2_rfd_null_sim, alpha=test_alpha),
-                          'Cauchy RFF' : RFDGofTest(p, rff_cauchy, null_sim=l2_rfd_null_sim, alpha=test_alpha),
+                          #'Gauss RFF' : RFDGofTest(p, rff_gauss, null_sim=l2_rfd_null_sim, alpha=test_alpha),
+                          #'Cauchy RFF' : RFDGofTest(p, rff_cauchy, null_sim=l2_rfd_null_sim, alpha=test_alpha),
                           'IMQ KSD' : KernelSteinTest(p, kimq, alpha=test_alpha, seed=None),
+                          'IMQ KSD (RBM)' : KernelSteinTest(p, kimq_rbm, alpha=test_alpha, seed=None),
                           'Gauss KSD' : KernelSteinTest(p, kgauss, alpha=test_alpha, seed=None),
                           'Nys IMQ KSD' : NystroemKSD(p, kimq, alpha=test_alpha, seed=None),
                           'Nys IMQ KSD (RBM)' : NystroemKSD(p, kimq_rbm, alpha=test_alpha, seed=None),
                           'Nys Gauss KSD' : NystroemKSD(p, kgauss, alpha=test_alpha, seed=None),
+                          'Gauss FSSD-rand' : GaussFSSD(p, sigma2, Vgauss, alpha=test_alpha, seed=None),
+                          'Gauss FSSD-opt' : GaussFSSD(p, gwidth_opt, Vgauss_opt, alpha=test_alpha, n_simulate=2000, seed=None),
     }
-    if 'Gauss FSSD-opt' in test_names:
-        possible_tests['Gauss FSSD-opt'] = GaussFSSD(p, gwidth_opt, Vgauss_opt, alpha=test_alpha, n_simulate=2000, seed=None)
     tests = {}
     for tn in test_names:
         try:
