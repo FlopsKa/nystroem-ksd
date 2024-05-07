@@ -37,7 +37,7 @@ def main():
     os.chdir(output_dir)
     print('changed working directory to', output_dir)
 
-    ns = [100, 500, 1000]
+    ns = [100, 500, 1000, 2000, 5000]
     d = 10
     J = 10
     reps = args.rounds
