@@ -5,7 +5,7 @@ import argparse
 from collections import OrderedDict
 
 from rfsd.util import (Timer, store_objects, restore_object,
-                       create_folder_if_not_exist)
+                       create_folder_if_not_exist, meddistance)
 from rfsd import rfsd
 
 from kgof import kernel, density, goftest
@@ -37,7 +37,7 @@ def main():
     os.chdir(output_dir)
     print('changed working directory to', output_dir)
 
-    ns = [100, 500, 1000, 2000]
+    ns = [100, 500, 1000]
     d = 10
     J = 10
     reps = args.rounds
@@ -49,13 +49,47 @@ def main():
     def fssd(dat):
         V = fit_gaussian_draw(dat.data(), J, seed=4, reg=1e-6)
         return goftest.GaussFSSD(p, 1, V).compute_stat(dat)
+    
+    def fssd_opt(dat):
+        med_l2 = meddistance(dat.data(), subsample=1000)
+        sigma2 = med_l2**2
+
+        tr, te = dat.split_tr_te(tr_proportion=0.2, seed=None)
+        n_gwidth_cand = 5
+        gwidth_factors = 2.0**np.linspace(-3, 3, n_gwidth_cand)
+        kinit = kernel.KGauss(sigma2*2)
+        list_gwidth = np.hstack( ( (sigma2)*gwidth_factors ) )
+        Vgauss = fit_gaussian_draw(tr.data(), J, reg=1e-6,
+                               seed=int(10*np.sum(tr.data()**2)))
+        V0 = Vgauss
+        besti, objs = goftest.GaussFSSD.grid_search_gwidth(p, tr, V0,
+                                                       list_gwidth)
+        gwidth = list_gwidth[besti]
+
+        ops = {
+            'reg': 1e-2,
+            'max_iter': 40,
+            'tol_fun': 1e-4,
+            'disp': False,
+            'locs_bounds_frac': 10.0,
+            'gwidth_lb': 1e-1,
+            'gwidth_ub': 1e4,
+            }
+        Vgauss_opt, gwidth_opt, info = goftest.GaussFSSD.optimize_locs_widths(p, tr,
+                gwidth, V0, **ops)
+        
+        return goftest.GaussFSSD(p, gwidth_opt, Vgauss_opt, seed=4).compute_stat(te)
 
     metrics = OrderedDict([
-        #('Gauss FSSD-rand', fssd),
+        ('Gauss FSSD-rand', fssd),
+        ('Gauss FSSD-opt', fssd_opt),
         ('IMQ KSD', make_divergence_call(rfsd.KSD(kernel.KIMQ(), p))),
-        #('L2 SechExp', make_divergence_call(rfsd.LrSechFastKSD(p))),
+        ('Gauss KSD', make_divergence_call(rfsd.KSD(kernel.KGauss(1), p))),
+        ('L2 SechExp', make_divergence_call(rfsd.LrSechFastKSD(p))),
         ('L1 IMQ', make_divergence_call(rfsd.L1IMQFastKSD(p, d=d))),
-        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : int(np.sqrt(n)))))])
+        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : int(np.sqrt(n))))),
+        ('Nys Gauss KSD', make_divergence_call(NystroemKSD(p, kernel.KGauss(1), m=lambda n : int(np.sqrt(n))))),
+        ])
 
     store_loc = 'speed-experiment-stored-data-%d-rounds' % reps
 
