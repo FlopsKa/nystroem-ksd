@@ -9,7 +9,7 @@ allow-direct-references = true
 name = "nystroem_ksd"
 version = "0.0.1"
 authors = [
-  { name="Anonymous Authors", email="anonymous@neurips.cc" },
+  { name="Anonymous Authors", email="anonymous@anon.com" },
 ]
 description = "Code for the article Nyström KSD"
 readme = "README.md"
