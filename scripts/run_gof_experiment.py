@@ -31,14 +31,19 @@ def parse_arguments():
     parser.add_argument('-o', '--output-dir', default='results')
     parser.add_argument('-t', '--tests', nargs='*', metavar='test')
     parser.add_argument('-g', '--gamma', type=float, default=0.25)
+    parser.add_argument('-dx', '--visible-dimension-rbm', type=int, default=50, metavar='dx')
+    parser.add_argument('-dh', '--hidden-dimension-rbm', type=int, default=40, metavar='dh')
     parser.add_argument('--merge', action='store_true')
     return parser.parse_args()
 
 
 def experiment_name(args):
+    print(args)
     attributes = [('rounds', 'rounds'),
                   ('num_features', 'J'),
-                  ('tests', 'tests')]
+                  ('tests', 'tests'),
+                  ('visible_dimension_rbm', 'visible_dimension_rbm'),
+                  ('hidden_dimension_rbm', 'hidden_dimension_rbm')]
     if args.gamma != 0.25:
         attributes.append(('gamma', 'gamma'))
     if args.experiment_name == 'rbm':
@@ -67,7 +72,7 @@ def run_experiment(args):
         expt_fun = goft_exp.run_rbm_fssd_experiment
         expt_grp_fun = goft_exp.run_goft_rbm_experiment_group
         if args.experiment_name == 'rbm':
-            kwargs = dict(sigmaPers=args.noise_levels, dx=50, dh=40)
+            kwargs = dict(sigmaPers=args.noise_levels, dx=args.visible_dimension_rbm, dh=args.hidden_dimension_rbm)
         else:
             kwargs = dict(sigmaPers=args.noise_levels, dx=25, dh=20)
 
