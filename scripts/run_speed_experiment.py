@@ -4,6 +4,9 @@ import os
 import argparse
 from collections import OrderedDict
 
+from rfsd.distributions import rff_cauchy_sampler
+from rfsd.goftest import RFDGofTest
+from rfsd.kernel import KGauss2
 from rfsd.util import (Timer, store_objects, restore_object,
                        create_folder_if_not_exist, meddistance)
 from rfsd import rfsd
@@ -24,6 +27,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--rounds', type=int, default=10)
     parser.add_argument('-o', '--output-dir', default='results')
+    parser.add_argument('-c', '--factor-of-nys-points', default=4, type=int)
+    parser.add_argument('-d', '--dimension', default=10, type=int)
     return parser.parse_args()
 
 
@@ -38,7 +43,7 @@ def main():
     print('changed working directory to', output_dir)
 
     ns = [100, 500, 1000, 2000, 5000]
-    d = 10
+    d = args.dimension
     J = 10
     reps = args.rounds
 
@@ -79,16 +84,30 @@ def main():
                 gwidth, V0, **ops)
         
         return goftest.GaussFSSD(p, gwidth_opt, Vgauss_opt, seed=4).compute_stat(te)
+    
+    def rff_gauss(dat):
+        med_l2 = meddistance(dat.data(), subsample=1000)
+        sigma2 = med_l2**2
+        kgauss = KGauss2(sigma2)
+        rff = rfsd.RFFKSD(kgauss.rff_sampler(d), p)
+        return RFDGofTest(p, rff).compute_stat(dat.data())
+
+    def rff_cauchy(dat):
+        med_l2 = meddistance(dat.data(), subsample=1000)
+        rff = rfsd.RFFKSD(rff_cauchy_sampler(med_l2, d), p)
+        return  RFDGofTest(p, rff).compute_stat(dat.data())
 
     metrics = OrderedDict([
-        ('Gauss FSSD-rand', fssd),
-        ('Gauss FSSD-opt', fssd_opt),
-        ('IMQ KSD', make_divergence_call(rfsd.KSD(kernel.KIMQ(), p))),
-        ('Gauss KSD', make_divergence_call(rfsd.KSD(kernel.KGauss(1), p))),
-        ('L2 SechExp', make_divergence_call(rfsd.LrSechFastKSD(p))),
-        ('L1 IMQ', make_divergence_call(rfsd.L1IMQFastKSD(p, d=d))),
-        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : int(np.sqrt(n))))),
-        ('Nys Gauss KSD', make_divergence_call(NystroemKSD(p, kernel.KGauss(1), m=lambda n : int(np.sqrt(n))))),
+        #('Gauss FSSD-rand', fssd),
+        #('Gauss FSSD-opt', fssd_opt),
+        #('IMQ KSD', make_divergence_call(rfsd.KSD(kernel.KIMQ(), p))),
+        #('Gauss KSD', make_divergence_call(rfsd.KSD(kernel.KGauss(1), p))),
+        #('L2 SechExp', make_divergence_call(rfsd.LrSechFastKSD(p))),
+        #('L1 IMQ', make_divergence_call(rfsd.L1IMQFastKSD(p, d=d))),
+        #('Gauss RFF', rff_gauss),
+        #('Cauchy RFF', rff_cauchy),
+        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : args.factor_of_nys_points* int(np.sqrt(n))))),
+        ('Nys Gauss KSD', make_divergence_call(NystroemKSD(p, kernel.KGauss(1), m=lambda n : args.factor_of_nys_points* int(np.sqrt(n))))),
         ])
 
     store_loc = 'speed-experiment-stored-data-%d-rounds' % reps
