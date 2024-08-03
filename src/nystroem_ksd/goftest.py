@@ -20,7 +20,7 @@ class NystroemKSD(GofTest, Divergence):
     p is specified to the constructor in the form of an UnnormalizedDensity.
     """
 
-    def __init__(self, p, k, m = lambda n : 4*int(np.sqrt(n)), bootstrapper=bootstrapper_rademacher, alpha=0.01,
+    def __init__(self, p, k, m = lambda n : int(1*np.sqrt(n)), bootstrapper=bootstrapper_rademacher, alpha=0.01,
             n_simulate=500, seed=11):
         """
         p: an instance of UnnormalizedDensity

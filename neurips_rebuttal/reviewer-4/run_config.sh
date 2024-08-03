@@ -1,0 +1,3 @@
+python ../../scripts/run_gof_experiment.py  laplace -t "Nys Gauss KSD" "Nys IMQ KSD" -r 100 -o "c=1" # manually set the factor of "m" in the script
+python ../../scripts/run_gof_experiment.py  student-t -t "Nys Gauss KSD" "Nys IMQ KSD" -r 100 -o "c=1" # manually set the factor of "m" in the script
+python ../../scripts/run_gof_experiment.py  rbm -t "Nys Gauss KSD" "Nys IMQ KSD (RBM)" -r 100 -o "c=1" # manually set the factor of "m" in the script
