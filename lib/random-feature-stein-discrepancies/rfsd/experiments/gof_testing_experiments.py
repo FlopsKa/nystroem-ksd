@@ -191,6 +191,7 @@ def single_gof_testing_round(test_names, case, gamma, test_alpha, J):
                 gwidth, V0, **ops)
 
     # L1 IMQ
+    #import pdb; pdb.set_trace()
     rfd_imq = L1IMQFastKSD(p, c=c, gamma=gamma, d=d, target_df=.5)
     rfd_imq_rbm = L1IMQFastKSD(p, c=c_rbm, gamma=gamma, d=d, target_df=2.6)
     # Lr Sech
@@ -201,6 +202,8 @@ def single_gof_testing_round(test_names, case, gamma, test_alpha, J):
     # KSDs
     kimq = KIMQ(b=rfd_imq.beta_prime,c=rfd_imq.c_prime)
     kimq_rbm = KIMQ(c=1)
+
+    #print(f"b={rfd_imq.beta_prime},c={rfd_imq.c_prime}")
 
     sim_seed = hash(np.random.rand()) % np.iinfo(np.int32).max
 
@@ -227,9 +230,10 @@ def single_gof_testing_round(test_names, case, gamma, test_alpha, J):
                           'L1 IMQ' : RFDGofTest(p, rfd_imq, null_sim=l1_rfd_null_sim, alpha=l1_imq_test_alpha),
                           'L2 SechExp' : RFDGofTest(p, rfd_sech, null_sim=l2_rfd_null_sim, alpha=l2_sech_test_alpha),
                           'L2 SechExp (alpha)' : RFDGofTest(p, rfd_sech, null_sim=l2_rfd_null_sim, alpha=test_alpha),
-                          #'Gauss RFF' : RFDGofTest(p, rff_gauss, null_sim=l2_rfd_null_sim, alpha=test_alpha),
-                          #'Cauchy RFF' : RFDGofTest(p, rff_cauchy, null_sim=l2_rfd_null_sim, alpha=test_alpha),
+                          'Gauss RFF' : RFDGofTest(p, rff_gauss, null_sim=l2_rfd_null_sim, alpha=test_alpha),
+                          'Cauchy RFF' : RFDGofTest(p, rff_cauchy, null_sim=l2_rfd_null_sim, alpha=test_alpha),
                           'IMQ KSD' : KernelSteinTest(p, kimq, alpha=test_alpha, seed=None),
+                          'IMQ KSD Orig' : KernelSteinTest(p, kimq_rbm, alpha=test_alpha, seed=None), # use the default configuration of the IMQ kernel
                           'IMQ KSD (RBM)' : KernelSteinTest(p, kimq_rbm, alpha=test_alpha, seed=None),
                           'Gauss KSD' : KernelSteinTest(p, kgauss, alpha=test_alpha, seed=None),
                           'Nys IMQ KSD' : NystroemKSD(p, kimq, alpha=test_alpha, seed=None),
