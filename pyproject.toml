@@ -23,6 +23,6 @@ dependencies = [
   #"kgof@git+https://github.com/wittawatj/kernel-gof.git",
   #"rfsd@git+https://bitbucket.org/jhhuggins/random-feature-stein-discrepancies.git",
   "pytest",
-  "numpy",
+  "numpy==1.26.0",
   "scikit-learn"
 ]

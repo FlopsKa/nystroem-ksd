@@ -42,7 +42,7 @@ def main():
     os.chdir(output_dir)
     print('changed working directory to', output_dir)
 
-    ns = [100, 500, 1000, 2000, 5000]
+    ns = [100, 500, 1000] #, 2000, 5000]
     d = args.dimension
     J = 10
     reps = args.rounds
@@ -106,7 +106,7 @@ def main():
         #('L1 IMQ', make_divergence_call(rfsd.L1IMQFastKSD(p, d=d))),
         #('Gauss RFF', rff_gauss),
         #('Cauchy RFF', rff_cauchy),
-        ('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : args.factor_of_nys_points* int(np.sqrt(n))))),
+        #('Nys IMQ KSD', make_divergence_call(NystroemKSD(p, kernel.KIMQ(), m=lambda n : args.factor_of_nys_points* int(np.sqrt(n))))),
         ('Nys Gauss KSD', make_divergence_call(NystroemKSD(p, kernel.KGauss(1), m=lambda n : args.factor_of_nys_points* int(np.sqrt(n))))),
         ])
 

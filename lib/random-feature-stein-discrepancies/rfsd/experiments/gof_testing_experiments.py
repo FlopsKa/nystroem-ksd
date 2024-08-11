@@ -118,6 +118,7 @@ def run_gauss_t_goft_experiment(d=1, df=10, **kwargs):
 ### RBM vs corrupted RBM experiment ###
 
 def generate_rbm_case(n, dx, dh, sigmaPer):
+    print(n)
     b = np.random.randn(dx)
     c = np.random.randn(dh)
     B = np.random.choice([-1,1],size=[dx, dh])
@@ -233,7 +234,7 @@ def single_gof_testing_round(test_names, case, gamma, test_alpha, J):
                           'Gauss RFF' : RFDGofTest(p, rff_gauss, null_sim=l2_rfd_null_sim, alpha=test_alpha),
                           'Cauchy RFF' : RFDGofTest(p, rff_cauchy, null_sim=l2_rfd_null_sim, alpha=test_alpha),
                           'IMQ KSD' : KernelSteinTest(p, kimq, alpha=test_alpha, seed=None),
-                          'IMQ KSD Orig' : KernelSteinTest(p, kimq_rbm, alpha=test_alpha, seed=None), # use the default configuration of the IMQ kernel
+                          'IMQ KSD Orig' : KernelSteinTest(p, kimq_rbm, alpha=test_alpha, seed=None),
                           'IMQ KSD (RBM)' : KernelSteinTest(p, kimq_rbm, alpha=test_alpha, seed=None),
                           'Gauss KSD' : KernelSteinTest(p, kgauss, alpha=test_alpha, seed=None),
                           'Nys IMQ KSD' : NystroemKSD(p, kimq, alpha=test_alpha, seed=None),
@@ -268,6 +269,7 @@ def run_goft_experiment(generate_case, other_params={}, test_names=None,
     if test_names is None:
         raise ValueError('test_names must be provided')
     test_rejects = defaultdict(int)
+    test_times = defaultdict(float)
 
     p_values = defaultdict(list)
     biases = defaultdict(list)
@@ -285,6 +287,7 @@ def run_goft_experiment(generate_case, other_params={}, test_names=None,
                 print('rerunning round because of error:', e)
         for tn, r in results.items():
             test_rejects[tn] += r['h0_rejected']
+            test_times[tn] += r['time_secs']
             if 'bias' in r:
                 biases[tn].append(r['bias'])
             p_values[tn].append(r['pvalue'])
@@ -308,14 +311,15 @@ def run_goft_experiment(generate_case, other_params={}, test_names=None,
                 'rounds' : rounds,
             }
     params.update(other_params)
+
     if return_pvalues:
         return test_rejects, p_values, params
     else:
-        return test_rejects, params
+        return test_rejects, params, test_times
 
 
 def print_experiment_results(results):
-    rejects, params = results
+    rejects, params, times = results
     rounds = params['rounds']
     for test_name, test_rejects in rejects.items():
         l, u = binomial_interval(.95, test_rejects, rounds)
@@ -429,10 +433,15 @@ def run_goft_experiment_group(test_names, experiment, all_results=None,
         if J not in all_results:
             all_results[J] = defaultdict(list)
         aggregated_results = all_results[J]
+        
+        all_times = dict()
+        for tn in test_names:
+            all_times[tn] = [0]*len(ds)
+
         for i, d in enumerate(ds):
             results = experiment(d=d, test_names=test_names, J=J, rounds=rounds,
                                  verbose=False, **kwargs)
-            rejects, params = results
+            rejects, params, times = results # make use of times
             if d == ds[0]:
                 if J == Js[0]:
                     print('Shared Configuration:')
@@ -457,12 +466,13 @@ def run_goft_experiment_group(test_names, experiment, all_results=None,
                 else:
                     prev_tr = aggregated_results[tn][i] * prev_rounds
                     aggregated_results[tn][i] = (prev_tr + tr) / total_rounds
-
+            for tn, tr in times.items():
+                all_times[tn][i] = times[tn] / rounds
         all_results[J] = aggregated_results
         if plot_results:
             plot_experiment_results(aggregated_results, ds,
                                     'dimension $D$', params['test_alpha'])
-    return all_results, all_params
+    return all_results, all_params, all_times
 
 
 
@@ -474,7 +484,7 @@ def run_goft_rbm_experiment_group(test_names, experiment, all_results=None,
     if all_results is None:
         all_results = dict()
     if all_params is None:
-        all_params = dict(variable_name='perturbation std. dev. $\sigma_{per}$',
+        all_params = dict(variable_name='perturbation std. dev. $\\sigma_{per}$',
                           variable_values=sigmaPers,
                           rounds=rounds,
                           test_alpha=test_alpha)
@@ -484,7 +494,7 @@ def run_goft_rbm_experiment_group(test_names, experiment, all_results=None,
         # make sure all the parameters match
         assert all_params['test_alpha'] == test_alpha
         assert all_params['variable_values'] == sigmaPers
-        assert all_params['variable_name'] == 'perturbation std. dev. $\sigma_{per}$'
+        assert all_params['variable_name'] == 'perturbation std. dev. $\\sigma_{per}$'
         for J in Js:
             assert J in all_results
         for k, v in kwargs.items():
@@ -499,10 +509,15 @@ def run_goft_rbm_experiment_group(test_names, experiment, all_results=None,
         if J not in all_results:
             all_results[J] = defaultdict(list)
         aggregated_results = all_results[J]
+
+        all_times = dict()
+        for tn in test_names:
+            all_times[tn] = [0]*len(sigmaPers)
+
         for i, sigmaPer in enumerate(sigmaPers):
             results = experiment(sigmaPer=sigmaPer, test_names=test_names, J=J,
                                  rounds=rounds, verbose=False, **kwargs)
-            rejects, params = results
+            rejects, params, times = results
             if sigmaPer == sigmaPers[0]:
                 if J == Js[0]:
                     print('Shared Configuration:')
@@ -527,10 +542,12 @@ def run_goft_rbm_experiment_group(test_names, experiment, all_results=None,
                 else:
                     prev_tr = aggregated_results[tn][i] * prev_rounds
                     aggregated_results[tn][i] = (prev_tr + tr) / total_rounds
+            for tn, tr in times.items():
+                all_times[tn][i] = times[tn] / rounds
 
         all_results[J] = aggregated_results
         if plot_results:
             plot_experiment_results(aggregated_results, sigmaPers,
                                     all_params['variable_name'],
                                     all_params['test_alpha'])
-    return all_results, all_params
+    return all_results, all_params, all_times

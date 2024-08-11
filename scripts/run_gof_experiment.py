@@ -62,9 +62,9 @@ def run_experiment(args):
     if args.experiment_name == 'null':
         expt_fun = goft_exp.run_gauss_goft_experiment
         kwargs = dict(ds=args.d)
-    elif  args.experiment_name == 'laplace':
+    elif args.experiment_name == 'laplace':
         expt_fun = goft_exp.run_gauss_laplace_goft_experiment
-        kwargs = dict(ds=args.d)
+        kwargs = dict(ds=args.d, n=500)
     elif args.experiment_name == 'student-t':
         expt_fun = goft_exp.run_gauss_t_goft_experiment
         kwargs = dict(ds=args.d, df=5, n=2000)
@@ -72,7 +72,7 @@ def run_experiment(args):
         expt_fun = goft_exp.run_rbm_fssd_experiment
         expt_grp_fun = goft_exp.run_goft_rbm_experiment_group
         if args.experiment_name == 'rbm':
-            kwargs = dict(sigmaPers=args.noise_levels, dx=args.visible_dimension_rbm, dh=args.hidden_dimension_rbm)
+            kwargs = dict(sigmaPers=args.noise_levels, dx=args.visible_dimension_rbm, dh=args.hidden_dimension_rbm, n=1000)
         else:
             kwargs = dict(sigmaPers=args.noise_levels, dx=25, dh=20)
 
@@ -145,8 +145,8 @@ def main():
             print('reloaded existing data')
         except IOError:
             with Timer('experiment'):
-                results, params = run_experiment(args)
-            store_objects(store_loc, results=results, params=params)
+                results, params, times = run_experiment(args)
+            store_objects(store_loc, results=results, params=params, times=times)
 
     ymax = .1 if args.experiment_name == 'null' else 1.05
     # legend_kwargs = dict(loc='upper center', bbox_to_anchor=(0.5, -0.2),
